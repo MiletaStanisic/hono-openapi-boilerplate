@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventStatus {
+  planning
+  active
+  completed
+  canceled
+}
+
+enum VendorStatus {
+  proposed
+  confirmed
+  canceled
+}
+
+enum RiskStatus {
+  open
+  mitigated
+  accepted
+}
+
+model Event {
+  id          String         @id @default(cuid())
+  name        String
+  venue       String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  status      EventStatus    @default(planning)
+  totalBudget Decimal?       @db.Decimal(12, 2)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  vendors     Vendor[]
+  runOfShow   RunOfShowItem[]
+  budgetItems BudgetItem[]
+  risks       Risk[]
+
+  @@index([status])
+}
+
+model Vendor {
+  id         String       @id @default(cuid())
+  eventId    String
+  name       String
+  category   String?
+  status     VendorStatus @default(proposed)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  event      Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([status])
+}
+
+model RunOfShowItem {
+  id          String   @id @default(cuid())
+  eventId      String
+  title        String
+  scheduledAt  DateTime?
+  completed    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([scheduledAt])
+}
+
+model BudgetItem {
+  id           String   @id @default(cuid())
+  eventId      String
+  title        String
+  category     String?
+  estimatedAmt Decimal? @db.Decimal(12, 2)
+  actualAmt    Decimal? @db.Decimal(12, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model Risk {
+  id         String     @id @default(cuid())
+  eventId    String
+  title      String
+  impact     String
+  likelihood String
+  status     RiskStatus @default(open)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  event      Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([status])
+}

@@ -128,6 +128,10 @@ Domain-specific filters (e.g. `status`, `category`, `name`) are listed per-endpo
 | `npm run lint` | ESLint |
 | `npm run format:check` | Prettier |
 | `npm run test` | Vitest (66 tests) |
+| `npm run prisma:generate` | Generate Prisma client |
+| `npm run prisma:migrate:dev` | Run local Prisma migration |
+| `npm run prisma:migrate:deploy` | Apply Prisma migrations |
+| `npm run prisma:studio` | Open Prisma Studio |
 | `npm run skills:sync` | Sync optional vendor skills |
 | `npm run skills:verify` | Verify required local backend skills (and optional vendor skills) |
 | `npm run docker:up` | Start API + Postgres + Redis with Docker Compose |
@@ -156,3 +160,12 @@ Default containerized stack:
 - API: `http://localhost:4200`
 - Postgres: `localhost:5436`
 - Redis: `localhost:6382`
+
+## Persistence baseline
+
+This repo now includes Prisma baseline files:
+
+- `prisma/schema.prisma`
+- `src/db/prisma.ts`
+
+Current API still runs on in-memory services by default; Prisma layer is prepared for incremental migration.
