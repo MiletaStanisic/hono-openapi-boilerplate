@@ -2,40 +2,51 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { app } from "../src/app.js";
 
-const healthResponseSchema = z.object({
-  status: z.literal("ok")
-});
+const healthSchema = z.object({ status: z.literal("ok"), service: z.string() });
 
-const taskResponseSchema = z.object({
-  title: z.string(),
-  done: z.boolean()
-});
-
-describe("Hono OpenAPI boilerplate", () => {
-  it("returns health payload", async () => {
-    const response = await app.request("/health");
-    expect(response.status).toBe(200);
-
-    const data = healthResponseSchema.parse((await response.json()) as unknown);
-    expect(data).toMatchObject({ status: "ok" });
+describe("System endpoints", () => {
+  it("GET /health returns ok payload", async () => {
+    const res = await app.request("/health");
+    expect(res.status).toBe(200);
+    const data = healthSchema.parse(await res.json());
+    expect(data.status).toBe("ok");
+    expect(data.service).toBe("event-production-control");
   });
 
-  it("creates task with valid payload", async () => {
-    const response = await app.request("/tasks", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({ title: "Prepare API demo flow" })
-    });
-
-    expect(response.status).toBe(201);
-    const data = taskResponseSchema.parse((await response.json()) as unknown);
-    expect(data).toMatchObject({ title: "Prepare API demo flow", done: false });
+  it("GET /openapi.json exposes OpenAPI 3.1 document", async () => {
+    const res = await app.request("/openapi.json");
+    expect(res.status).toBe(200);
+    const doc = (await res.json()) as Record<string, unknown>;
+    expect(doc.openapi).toBe("3.1.0");
+    expect((doc.info as Record<string, unknown>).title).toBe("Event Production Control API");
   });
 
-  it("exposes OpenAPI document", async () => {
-    const response = await app.request("/openapi.json");
-    expect(response.status).toBe(200);
+  it("GET /docs serves Swagger UI", async () => {
+    const res = await app.request("/docs");
+    expect(res.status).toBe(200);
+  });
+});
+
+describe("OpenAPI route coverage", () => {
+  const expectedPaths = [
+    "/health",
+    "/events",
+    "/events/{id}",
+    "/events/{id}/vendors",
+    "/events/{id}/vendors/{vendorId}",
+    "/events/{id}/run-of-show",
+    "/events/{id}/run-of-show/{itemId}",
+    "/events/{id}/budget-items",
+    "/events/{id}/budget-items/{itemId}",
+    "/events/{id}/risks",
+    "/events/{id}/risks/{riskId}",
+    "/events/{id}/health-score",
+    "/dashboard/summary"
+  ];
+
+  it.each(expectedPaths)("path %s is present in OpenAPI spec", async (path) => {
+    const res = await app.request("/openapi.json");
+    const doc = (await res.json()) as { paths: Record<string, unknown> };
+    expect(Object.keys(doc.paths)).toContain(path);
   });
 });

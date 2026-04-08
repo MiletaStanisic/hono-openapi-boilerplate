@@ -1,97 +1,50 @@
-import { randomUUID } from "node:crypto";
 import { swaggerUI } from "@hono/swagger-ui";
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { budgetItemsRouter } from "./routes/budget-items.js";
+import { dashboardRouter } from "./routes/dashboard.js";
+import { eventsRouter } from "./routes/events.js";
+import { healthRouter } from "./routes/health.js";
+import { healthScoreRouter } from "./routes/health-score.js";
+import { risksRouter } from "./routes/risks.js";
+import { runOfShowRouter } from "./routes/run-of-show.js";
+import { vendorsRouter } from "./routes/vendors.js";
 
-const app = new OpenAPIHono();
-
-const tasks: Array<{ id: string; title: string; done: boolean }> = [
-  {
-    id: "seed-1",
-    title: "Draft API acceptance criteria",
-    done: false
-  }
-];
-
-const healthRoute = createRoute({
-  method: "get",
-  path: "/health",
-  responses: {
-    200: {
-      description: "Service health",
-      content: {
-        "application/json": {
-          schema: z.object({
-            status: z.literal("ok"),
-            service: z.string()
-          })
-        }
-      }
+const app = new OpenAPIHono({
+  defaultHook: (result, c) => {
+    if (!result.success) {
+      return c.json(
+        { code: "VALIDATION_ERROR", message: "Invalid request payload" },
+        400
+      );
     }
   }
 });
 
-const createTaskRoute = createRoute({
-  method: "post",
-  path: "/tasks",
-  request: {
-    body: {
-      required: true,
-      content: {
-        "application/json": {
-          schema: z.object({
-            title: z.string().min(3)
-          })
-        }
-      }
-    }
-  },
-  responses: {
-    201: {
-      description: "Created task",
-      content: {
-        "application/json": {
-          schema: z.object({
-            id: z.string(),
-            title: z.string(),
-            done: z.boolean()
-          })
-        }
-      }
-    },
-    400: {
-      description: "Validation error"
-    }
-  }
-});
-
-app.openapi(healthRoute, (c) => {
-  return c.json({
-    status: "ok",
-    service: "hono-openapi-boilerplate"
-  });
-});
-
-app.get("/tasks", (c) => {
-  return c.json({ items: tasks });
-});
-
-app.openapi(createTaskRoute, (c) => {
-  const body = c.req.valid("json");
-  const task = {
-    id: randomUUID(),
-    title: body.title,
-    done: false
-  };
-  tasks.unshift(task);
-  return c.json(task, 201);
-});
+app.route("/", healthRouter);
+app.route("/", eventsRouter);
+app.route("/", vendorsRouter);
+app.route("/", runOfShowRouter);
+app.route("/", budgetItemsRouter);
+app.route("/", risksRouter);
+app.route("/", healthScoreRouter);
+app.route("/", dashboardRouter);
 
 app.doc("/openapi.json", {
   openapi: "3.1.0",
   info: {
-    title: "hono-openapi-boilerplate",
-    version: "0.1.0"
-  }
+    title: "Event Production Control API",
+    version: "1.0.0",
+    description: "Backend API for managing events, vendors, run-of-show, budgets, and risks."
+  },
+  tags: [
+    { name: "System", description: "Health and meta endpoints" },
+    { name: "Events", description: "Event lifecycle management" },
+    { name: "Vendors", description: "Vendor management per event" },
+    { name: "Run of Show", description: "Ordered schedule items for an event" },
+    { name: "Budget Items", description: "Budget line items per event" },
+    { name: "Risks", description: "Risk register per event" },
+    { name: "Dashboard", description: "Aggregate summary views" }
+  ]
 });
 
 app.get("/docs", swaggerUI({ url: "/openapi.json" }));
