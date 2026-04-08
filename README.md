@@ -1,4 +1,4 @@
-# backend-hono-openapi-boilerplate
+# hono-openapi-boilerplate
 
 Hono + OpenAPI + TypeScript starter for backend demo apps with strict lint/test/build and agent governance.
 

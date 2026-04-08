@@ -1,5 +1,5 @@
 {
-  "name": "backend-hono-openapi-boilerplate",
+  "name": "hono-openapi-boilerplate",
   "version": "0.1.0",
   "private": false,
   "description": "Production-oriented Hono + OpenAPI + TypeScript backend boilerplate",

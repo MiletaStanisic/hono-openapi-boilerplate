@@ -67,7 +67,7 @@ const createTaskRoute = createRoute({
 app.openapi(healthRoute, (c) => {
   return c.json({
     status: "ok",
-    service: "backend-hono-openapi-boilerplate"
+    service: "hono-openapi-boilerplate"
   });
 });
 
@@ -89,7 +89,7 @@ app.openapi(createTaskRoute, (c) => {
 app.doc("/openapi.json", {
   openapi: "3.1.0",
   info: {
-    title: "backend-hono-openapi-boilerplate",
+    title: "hono-openapi-boilerplate",
     version: "0.1.0"
   }
 });
