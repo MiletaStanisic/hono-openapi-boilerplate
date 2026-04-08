@@ -116,6 +116,8 @@ Domain-specific filters (e.g. `status`, `category`, `name`) are listed per-endpo
 |----------|---------|-------|
 | `PORT` | `4200` | HTTP listen port |
 | `NODE_ENV` | `development` | `development` \| `test` \| `production` |
+| `DATABASE_URL` | `postgresql://app:app@localhost:5436/app?schema=public` | Local database URL |
+| `REDIS_URL` | `redis://localhost:6382` | Local Redis URL |
 
 ## Scripts
 
@@ -126,8 +128,12 @@ Domain-specific filters (e.g. `status`, `category`, `name`) are listed per-endpo
 | `npm run lint` | ESLint |
 | `npm run format:check` | Prettier |
 | `npm run test` | Vitest (66 tests) |
-| `npm run skills:sync` | Pin Vercel agent skills |
-| `npm run skills:verify` | Verify locked skills |
+| `npm run skills:sync` | Sync optional vendor skills |
+| `npm run skills:verify` | Verify required local backend skills (and optional vendor skills) |
+| `npm run docker:up` | Start API + Postgres + Redis with Docker Compose |
+| `npm run docker:down` | Stop Docker Compose services |
+| `npm run docker:logs` | Tail Docker app logs |
+| `npm run docker:validate` | Validate compose syntax |
 
 ## Required checks before merge
 
@@ -137,3 +143,16 @@ npm run lint
 npm run test
 npm run build
 ```
+
+## Docker local dev
+
+```bash
+cp .env.example .env
+npm run docker:up
+```
+
+Default containerized stack:
+
+- API: `http://localhost:4200`
+- Postgres: `localhost:5436`
+- Redis: `localhost:6382`
